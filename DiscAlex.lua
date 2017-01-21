@@ -2,7 +2,7 @@ require 'cudnn'
 require 'cunn'
 require 'nn'
 
-local SpatialFullConvolution = nn.SpatialFullConvolution
+local spatialFullConvolution = nn.SpatialFullConvolution
 local spatialConv = cudnn.SpatialConvolution
 local spatialMaxPool = cudnn.SpatialMaxPooling
 local features  = nn.Sequential()
@@ -11,7 +11,7 @@ local batchNorm = nn.SpatialBatchNormalization
 
 
 
-local function weights_init(m)
+local function weightsInit(m)
 	local name = torch.type(m)
 	if name:find('Conv') then
 		m.weight:normal(0.0,0.02)
@@ -54,39 +54,39 @@ classifier:add(batchNorm(4096,nil,nil,false))
 classifier:add(nn.Linear(4096,1000))
 classifier:add(nn.LogSoftMax())
 
-local disc_model = nn.Sequential()
+local DiscriminativeModel = nn.Sequential()
 
-disc_model:add(features):add(classifier)
+DiscriminativeModel:add(features):add(classifier)
 
-disc_model:apply(weights_init)
+DiscriminativeModel:apply(weightsInit)
 
 
-local gen_model = nn.Sequential()
+local GenerativeModel = nn.Sequential()
 
-netG:add(SpatialFullConvolution(100, 64 * 32, 4, 4))
-netG:add(batchNorm(64 * 32)):add(nn.ReLU(true))
+GenerativeModel:add(spatialFullConvolution(100, 64 * 32, 4, 4))
+GenerativeModel:add(batchNorm(64 * 32)):add(nn.ReLU(true))
 -- state size: (64 * 32) x 4 x 4
-netG:add(SpatialFullConvolution(64 * 32, 64 * 16, 4, 4, 2, 2, 1, 1))
-netG:add(batchNorm(64 * 16)):add(nn.ReLU(true))
+GenerativeModel:add(spatialFullConvolution(64 * 32, 64 * 16, 4, 4, 2, 2, 1, 1))
+GenerativeModel:add(batchNorm(64 * 16)):add(nn.ReLU(true))
 -- state size: (64 * 16) x 8 x 8
-netG:add(SpatialFullConvolution(64 * 16, 64 * 8, 4, 4, 2, 2, 1, 1))
-netG:add(batchNorm(64 * 8)):add(nn.ReLU(true))
+GenerativeModel:add(spatialFullConvolution(64 * 16, 64 * 8, 4, 4, 2, 2, 1, 1))
+GenerativeModel:add(batchNorm(64 * 8)):add(nn.ReLU(true))
 -- state size: (64 * 8) x 16 x 16
-netG:add(SpatialFullConvolution(64 * 8, 64 * 4, 3, 3, 2, 2, 2, 2))
-netG:add(batchNorm(64 * 4)):add(nn.ReLU(true))
+GenerativeModel:add(spatialFullConvolution(64 * 8, 64 * 4, 3, 3, 2, 2, 2, 2))
+GenerativeModel:add(batchNorm(64 * 4)):add(nn.ReLU(true))
 -- state size: (64 * 4) x 29 x 29
-netG:add(SpatialFullConvolution(64 * 4, 64 * 2, 4, 4, 2, 2, 2, 2))
-netG:add(batchNorm(64 * 2)):add(nn.ReLU(true))
+GenerativeModel:add(spatialFullConvolution(64 * 4, 64 * 2, 4, 4, 2, 2, 2, 2))
+GenerativeModel:add(batchNorm(64 * 2)):add(nn.ReLU(true))
 -- state size: (64 * 2) x 56 x 56
-netG:add(SpatialFullConvolution(64 * 2, 64, 4, 4, 2, 2, 1, 1))
-netG:add(batchNorm(64)):add(nn.ReLU(true))
+GenerativeModel:add(spatialFullConvolution(64 * 2, 64, 4, 4, 2, 2, 1, 1))
+GenerativeModel:add(batchNorm(64)):add(nn.ReLU(true))
 -- state size: (64) x 112 x 112
-netG:add(SpatialFullConvolution(64, 3, 4, 4, 2, 2, 1, 1))
+GenerativeModel:add(spatialFullConvolution(64, 3, 4, 4, 2, 2, 1, 1))
 -- state size: 3 x 224 x 224
 
 
-netG:add(nn.Tanh())
+GenerativeModel:add(nn.Tanh())
 
-netG:apply(weights_init)
+GenerativeModel:apply(weightsInit)
 
 
