@@ -1,6 +1,9 @@
 require 'cudnn'
 require 'cunn'
 require 'nn'
+require 'paths'
+require 'optim'
+require 'torch'
 
 local spatialFullConvolution = nn.SpatialFullConvolution
 local spatialConv = cudnn.SpatialConvolution
@@ -88,5 +91,113 @@ GenerativeModel:add(spatialFullConvolution(64, 3, 4, 4, 2, 2, 1, 1))
 GenerativeModel:add(nn.Tanh())
 
 GenerativeModel:apply(weightsInit)
+local criterion = nn.BCECriterion()
 
+optimStateG = {
+	lr = opt.lr,
+	b1 = opt.beta1,
+}
+optimStateD = {
+	lr = opt.lr,
+	b1 = opt.beta1,
+}
+
+local input = torch.Tensor(opt.batchSize, 3, 224, 224)
+local noise = torch.Tensor(opt.batchSize, 100, 1, 1)
+local label = torch.Tensor(opt.batchSize)
+local errD, errG
+local epoch_tm = torch.Timer()
+local tm = torch.Timer()
+local data_tm = torch.Timer()
+
+
+if opt.gpu > 0 then
+	cutorch.setDevice(opt.gpu)
+	input = input:cuda()
+	noise = noise:cuda()
+	label = label:cude()
+	
+	if pcall(require,'cudnn') then
+		require 'cudnn'
+		cudnn.benchmark = true
+		cudnn.convert(GenerativeModel, cudnn)
+		cudnn.convert(DiscriminativeModel, cudnn)
+	end
+	DiscriminativeModel:cuda()
+	GenerativeModel:cuda()
+	criterion:cuda()
+end
+
+local dParams, dGradParams = DiscriminativeModel:getParameters()
+local gParams, gGradParams = GenerativeModel:getParameters()
+
+noiseNorm = noise:clone()
+noiseNorm:normal(0,1)
+
+
+local fDx = function(x)
+	dGradParams:zero()
+
+	data_tm:reset()
+	data_tm:resume()
+	local imgs = data:getBatch()
+	data_tm:stop()
+	input:copy(real)
+	label:fill(1)
+
+	local output = DiscriminativeModel:forward(input)
+	local imgError = criterion:forward(output, label)
+	local dError = criterion:backward(output, label)
+
+	DiscriminativeModel:backward(input, dError)
+
+	noise:normal(0,1)
+	local genImg = GenerativeModel:forward(noise)
+	input:copy(genImg)
+	label:fill(0)
+	
+        local output = DiscriminativeModel:forward(input)
+        local genImgError = criterion:forward(output, label)
+        local dGenError = criterion:backward(output, label)
+	DiscriminativeModel:backward(input, dGenError)
+
+	dError = imgError + genImgError
+	
+	return dError, dGradParams
+end
+
+local fGx = function(x)
+	gGradParams:zero()
+	label:fill(1)
+
+	local output = DiscriminativeModel.output
+	gError = criterion:forward(output, label)
+	local dError = criterion:backward(output, label)
+	local dGenError = DiscriminativeModel:updateGradInput(input, dError)
+	
+	GenerativeModel:backward(noise,dGenError)
+	return gError, gGradParams
+end
+
+for epoch = 1, opt.numEpoch do
+	epoch_tm:reset()
+	local counter = 0
+	for i = 1, data:size(), opt.batchSize do
+		tm:reset()
+		optim.adam(fDx, dParams, optimStateD)
+		optim.adam(fGx, gParams, optimStateG)
+		
+		counter = counter + 1
+		if counter % 250 == 0 then
+			print("Image:", counter)
+		end
+	end
+	print("Epoch Time:", epoch_tm:time().real)
+	gGradParams, dGradParams, gParams, dParams = nil, nil, nil, nil
+	torch.save("TrainedModels/" .. epoch .. "Gen", GenerativeModel:clearState())
+	torch.save("TrainedModels/" .. epoch .. "Disc", DiscriminativeModel:clearState())
+	gParams, gGradParams = GenerativeModel:getParameters()
+	dParams, dGradParams = DiscriminativeModel:getParameters()
+
+end
 
