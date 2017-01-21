@@ -7,17 +7,17 @@ HEIGHT = 224
 WIDTH = 224
 
 
-finalImage = np.zeros((HEIGHT, WIDTH, 3))
+
 
 for count, file in enumerate(os.listdir('/Users/sinhasam/Documents/lua/Ganerator/images')):
+	finalImage = np.zeros((HEIGHT, WIDTH, 3))
 	if not file.endswith('.JPEG'):
 		continue
-	if count <= 1452:
-		continue
+	
 	filename = str(file)
 	imgArray = cv2.imread(filename)
 
-	# imgArray = block_reduce(imgArray, block_size = (2,2,1), func = np.mean)
+	imgArray = block_reduce(imgArray, block_size = (2,2,1), func = np.mean)
 	
 	tempImg = np.zeros((HEIGHT, imgArray.shape[1], 3), dtype = np.int)
 	imageHeight = imgArray.shape[0]
