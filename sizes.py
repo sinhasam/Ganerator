@@ -1,38 +1,50 @@
 import cv2 
 import os
 import numpy as np
+from skimage.measure import block_reduce
 
-lowestHeight = 0
-highestHeight = 0
-lowestWidth = 0
-highestWidth = 0
-height = 0
-total = 0
-width = 0
-for file in os.listdir('/Users/sinhasam/Documents/lua/Ganerator/images'):
+HEIGHT = 224
+WIDTH = 224
+
+
+finalImage = np.zeros((HEIGHT, WIDTH, 3))
+
+for count, file in enumerate(os.listdir('/Users/sinhasam/Documents/lua/Ganerator/images')):
 	if not file.endswith('.JPEG'):
+		continue
+	if count <= 1452:
 		continue
 	filename = str(file)
 	imgArray = cv2.imread(filename)
-	total += 1
-	if imgArray.shape[0] <= 450:
-		height += 1
-	if imgArray.shape[1] <= 500:
-		width += 1
-	# if imgArray.shape[0] < lowestHeight:
-	# 	lowestHeight = imgArray.shape[0]
-	# elif imgArray.shape[0] > highestHeight:
-	# 	highestHeight = imgArray.shape[0]
-	# if imgArray.shape[1] < lowestWidth:
-	# 	lowestWidth = imgArray.shape[1]
-	# elif imgArray.shape[1] > highestWidth:
-	# 	highestWidth = imgArray.shape[1]
+
+	# imgArray = block_reduce(imgArray, block_size = (2,2,1), func = np.mean)
+	
+	tempImg = np.zeros((HEIGHT, imgArray.shape[1], 3), dtype = np.int)
+	imageHeight = imgArray.shape[0]
+	imageWidth = imgArray.shape[1]
+	if imageHeight > HEIGHT:
+		if imageWidth > WIDTH:
+			finalImage = imgArray[:HEIGHT, :WIDTH, :]
+		elif imageWidth < WIDTH:
+			finalImage[:HEIGHT, :imageWidth, :] = imgArray[:HEIGHT, :imageWidth, :]
+		else:
+			finalImage = imgArray
+
+		# tempImg = imgArray[diffHeightTop : imgArray.shape[0] - diffHeightBottom + 3][:][:] 
+	
+	elif imageHeight < HEIGHT:
+		if imageWidth > WIDTH:
+			finalImage[:imageHeight, : WIDTH, :] = imgArray[:imageHeight, :WIDTH, :]
+		elif imageWidth < WIDTH:
+			finalImage[:imageHeight, :imageWidth,:] = imgArray
+		else:
+			finalImage = imgArray
+	else:
+		finalImage = imgArray
 
 
-# print('lowest h: ' + str(lowestHeight))
-# print('highest h: ' + str(highestHeight))
-# print('lowest w' + str(lowestWidth))
-# print('highest w' + str(highestWidth))
-print('total ', total)
-print('height ', height)
-print('width ', width)
+	print(count)
+	
+	cv2.imwrite(filename, finalImage)
+	
+	
