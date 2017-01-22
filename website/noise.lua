@@ -1,5 +1,5 @@
-require 'cudnn'
-require 'cunn'
+--require 'cudnn'
+--require 'cunn'
 require 'nn'
 require 'paths'
 require 'optim'
@@ -17,18 +17,18 @@ opt = {
         gpu = 1
 }
 
-cutorch.setHeapTracking(true)
+--cutorch.setHeapTracking(true)
 local spatialFullConvolution = nn.SpatialFullConvolution
-local spatialConv = cudnn.SpatialConvolution
-local spatialMaxPool = cudnn.SpatialMaxPooling
---local spatialConv = nn.SpatialConvolution --HERERERERERE
---local spatialMaxPool = nn.SpatialMaxPooling --HERERERERERERE
+--local spatialConv = cudnn.SpatialConvolution
+--local spatialMaxPool = cudnn.SpatialMaxPooling
+local spatialConv = nn.SpatialConvolution --HERERERERERE
+local spatialMaxPool = nn.SpatialMaxPooling --HERERERERERERE
 local features  = nn.Sequential()
 local classifier = nn.Sequential()
 local batchNorm = nn.SpatialBatchNormalization
 torch.setdefaulttensortype('torch.FloatTensor')
 local GenerativeModel = nn.Sequential()
---[[
+
 GenerativeModel:add(spatialFullConvolution(100, 64 * 32, 4, 4))
 GenerativeModel:add(batchNorm(64 * 32)):add(nn.ReLU(true))
 -- state size: (64 * 32) x 4 x 4
@@ -49,7 +49,6 @@ GenerativeModel:add(batchNorm(64)):add(nn.ReLU(true))
 -- state size: (64) x 112 x 112
 GenerativeModel:add(spatialFullConvolution(64, 3, 4, 4, 2, 2, 1, 1))
 -- state size: 3 x 224 x 224
-]]--
 
 GenerativeModel:add(nn.Tanh())
 

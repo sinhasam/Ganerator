@@ -12,7 +12,7 @@ opt = {
 	batchSize = 1,
 	lr = 0.02,
 	b1 = 0.5,
-	numEpoch = 50,
+	numEpoch = 10000,
 	gpu = 1
 }
 
