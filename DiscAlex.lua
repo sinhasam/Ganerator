@@ -1,13 +1,27 @@
-require 'cudnn'
-require 'cunn'
+--require 'cudnn'
+--require 'cunn'
 require 'nn'
 require 'paths'
 require 'optim'
 require 'torch'
+require 'lfs'
+require 'optim'
+require 'image'
+
+opt = {
+	batchSize = 1,
+	lr = 0.002,
+	b1 = 0.5,
+	numEpoch = 50,
+	gpu = 0
+}
+
 
 local spatialFullConvolution = nn.SpatialFullConvolution
-local spatialConv = cudnn.SpatialConvolution
-local spatialMaxPool = cudnn.SpatialMaxPooling
+--local spatialConv = cudnn.SpatialConvolution
+--local spatialMaxPool = cudnn.SpatialMaxPooling
+local spatialConv = nn.SpatialConvolution
+local spatialMaxPool = nn.SpatialMaxPooling
 local features  = nn.Sequential()
 local classifier = nn.Sequential()
 local batchNorm = nn.SpatialBatchNormalization
@@ -27,34 +41,36 @@ end
 
 features:add(spatialConv(3,64,11,11,4,4,2,2))	--224 -> 55
 features:add(spatialMaxPool(3,3,2,2))
-features:add(cudnn.ReLU(true))
+--features:add(cudnn.ReLU(true))
+features:add(nn.ReLU(true))
+
 
 features:add(spatialConv(64,192,5,5,1,1,2,2))	--27 -> 27
 features:add(spatialMaxPool(3,3,2,2))           --27 -> 13
-features:add(cudnn.ReLU(true))
+features:add(nn.ReLU(true))
 
 features:add(spatialConv(192,384,3,3,1,1,1,1))  --13 -> 13
-features:add(cudnn.ReLU(true))
+features:add(nn.ReLU(true))
 
 features:add(spatialConv(384,256,3,3,1,1,1,1))  --13 -> 13
-features:add(cudnn.ReLU(true))
+features:add(nn.ReLU(true))
 
 features:add(spatialConv(256,256,3,3,1,1,1,1))  --13 -> 13
 features:add(spatialMaxPool(3,3,2,2))           --13 -> 6
-features:add(cudnn.ReLU(true))
-features:add(batchNorm(256,nil,nil,false))
+features:add(nn.ReLU(true))
+-- features:add(batchNorm(256,nil,nil,false))
 
 
 classifier:add(nn.View(256*6*6))
 classifier:add(nn.Dropout(0.5))
 classifier:add(nn.Linear(256*6*6, 4096))
 classifier:add(nn.Threshold(0, 1e-6))
-classifier:add(batchNorm(4096,nil,nil,false))
+--classifier:add(batchNorm(4096,nil,nil,false))
 classifier:add(nn.Dropout(0.5))
 classifier:add(nn.Linear(4096, 4096))
 classifier:add(nn.Threshold(0, 1e-6))
-classifier:add(batchNorm(4096,nil,nil,false))
-classifier:add(nn.Linear(4096,1000))
+--classifier:add(batchNorm(4096,nil,nil,false))
+classifier:add(nn.Linear(4096, 1))
 classifier:add(nn.LogSoftMax())
 
 local DiscriminativeModel = nn.Sequential()
@@ -86,7 +102,7 @@ GenerativeModel:add(batchNorm(64)):add(nn.ReLU(true))
 -- state size: (64) x 112 x 112
 GenerativeModel:add(spatialFullConvolution(64, 3, 4, 4, 2, 2, 1, 1))
 -- state size: 3 x 224 x 224
-
+print("pass1")
 
 GenerativeModel:add(nn.Tanh())
 
@@ -115,7 +131,7 @@ if opt.gpu > 0 then
 	cutorch.setDevice(opt.gpu)
 	input = input:cuda()
 	noise = noise:cuda()
-	label = label:cude()
+	label = label:cuda()
 	
 	if pcall(require,'cudnn') then
 		require 'cudnn'
@@ -134,17 +150,30 @@ local gParams, gGradParams = GenerativeModel:getParameters()
 noiseNorm = noise:clone()
 noiseNorm:normal(0,1)
 
+imgCount = 1
+dataset = {}
+for img in lfs.dir("images") do
+	i, j = string.find(img,"JPEG")
+	if(i ~= nil and j~=nil) then
+		dataset[imgCount] = img
+		imgCount = imgCount + 1
+	end
+end
+dataSize = imgCount
+imgCount = 1
+
 
 local fDx = function(x)
 	dGradParams:zero()
 
 	data_tm:reset()
 	data_tm:resume()
-	local imgs = data:getBatch()
+	local img = image.load(("images/"..dataset[imgCount]),3,float)
 	data_tm:stop()
-	input:copy(real)
+	input:copy(img)
 	label:fill(1)
 
+	print(input:size())
 	local output = DiscriminativeModel:forward(input)
 	local imgError = criterion:forward(output, label)
 	local dError = criterion:backward(output, label)
@@ -170,9 +199,9 @@ local fGx = function(x)
 	gGradParams:zero()
 	label:fill(1)
 
-	local output = DiscriminativeModel.output
-	gError = criterion:forward(output, label)
-	local dError = criterion:backward(output, label)
+	genOutput = DiscriminativeModel.output
+	gError = criterion:forward(genOutput, label)
+	local dError = criterion:backward(genOutput, label)
 	local dGenError = DiscriminativeModel:updateGradInput(input, dError)
 	
 	GenerativeModel:backward(noise,dGenError)
@@ -182,11 +211,12 @@ end
 for epoch = 1, opt.numEpoch do
 	epoch_tm:reset()
 	local counter = 0
-	for i = 1, data:size(), opt.batchSize do
+	for i = 1, dataSize, opt.batchSize do
 		tm:reset()
+		print("loop")
 		optim.adam(fDx, dParams, optimStateD)
 		optim.adam(fGx, gParams, optimStateG)
-		
+		print("passedloop")
 		counter = counter + 1
 		if counter % 250 == 0 then
 			print("Image:", counter)
@@ -194,8 +224,10 @@ for epoch = 1, opt.numEpoch do
 	end
 	print("Epoch Time:", epoch_tm:time().real)
 	gGradParams, dGradParams, gParams, dParams = nil, nil, nil, nil
-	torch.save("TrainedModels/" .. epoch .. "Gen", GenerativeModel:clearState())
-	torch.save("TrainedModels/" .. epoch .. "Disc", DiscriminativeModel:clearState())
+	torch.save("TrainedModels/" ..epoch.. "Gen", GenerativeModel:clearState())
+	torch.save("TrainedModels/" ..epoch.. "Disc", DiscriminativeModel:clearState())
+	torch.save("TrainedModels/" ..epoch.. "genImg",genOutput)
+	image.save("TrainedModels/images/" ..epoch.. "genImg.jpeg")
 	gParams, gGradParams = GenerativeModel:getParameters()
 	dParams, dGradParams = DiscriminativeModel:getParameters()
 
