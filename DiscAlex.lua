@@ -1,5 +1,5 @@
 require 'cudnn'
---require 'cunn'
+require 'cunn'
 require 'nn'
 require 'paths'
 require 'optim'
@@ -60,7 +60,7 @@ features:add(spatialConv(256,256,3,3,1,1,1,1))  --13 -> 13
 features:add(spatialMaxPool(3,3,2,2))           --13 -> 6
 features:add(cudnn.ReLU(true))
 --features:add(nn.ReLU(true)) -- HEREREREERE
-features:add(batchNorm(256,nil,nil,false))
+--features:add(batchNorm(256,nil,nil,false))
 
 
 classifier:add(nn.View(256*6*6))
@@ -104,7 +104,7 @@ GenerativeModel:add(batchNorm(64)):add(nn.ReLU(true))
 -- state size: (64) x 112 x 112
 GenerativeModel:add(spatialFullConvolution(64, 3, 4, 4, 2, 2, 1, 1))
 -- state size: 3 x 224 x 224
-print("pass1")
+
 
 GenerativeModel:add(nn.Tanh())
 
@@ -175,7 +175,7 @@ local fDx = function(x)
 	input:copy(img)
 	label:fill(1)
 
-	print(input:size())
+
 	local output = DiscriminativeModel:forward(input)
 	local imgError = criterion:forward(output, label)
 	local dError = criterion:backward(output, label)
@@ -220,7 +220,7 @@ for epoch = 1, opt.numEpoch do
 		optim.adam(fGx, gParams, optimStateG)
 		print("passedloop")
 		counter = counter + 1
-		if counter % 250 == 0 then
+		if counter % 50 == 0 then
 			print("Image:", counter)
 		end
 	end
