@@ -1,4 +1,11 @@
 $(document).ready(function () {
+	$('#scroll-button').click(function(){ //slow scrolling to anchors
+		if($("html, body").is(":animated")) return;
+		$('html, body').animate({
+			scrollTop: $( $(this).attr('href') ).offset().top
+		}, 600);
+		return false;
+	});
 	$(function () {
 		var position = 0, scrollNav;
 		$(window).scroll(function () {

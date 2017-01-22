@@ -44,17 +44,44 @@ table {
 
 .cr-header {
     position: fixed;
-    background: #e5e5e5;
+    background: #222222;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
     width: 100%;
     /*height will be minimum i.e. it wraps to the label*/
+    align-items: flex-end;
+    padding: 4px 0px;
+    border-bottom: #111111 1px solid;
+    z-index: 1000;
 }
 
 .header-text {
     font-family: "Helvetica", sans-serif;
     font-size: 32px;
     line-height: 36px;
-    color: #500079;
+    color: #EED8FF;
+    display: flex;
+    margin: 0 8px;
+}
+
+.header-text-second {
+    font-family: "Helvetica", sans-serif;
+    font-size: 24px;
+    line-height: 28px;
+    color: #7E6B8C;
+    display: flex;
+    margin: 0 8px;
+}
+
+.header-text-github {
+    font-family: "Helvetica", sans-serif;
+    font-size: 24px;
+    line-height: 28px;
+    color: #efefef;
+    display: flex;
+    margin: 0 8px;
+    float: right;
 }
 
 .app-area {
@@ -75,18 +102,19 @@ table {
 
 .image-area {
     margin: auto;
+    padding: 0px;
     height: 50%; /*change this accordingly once decide how many 224*224px^2 images, this might just be an image box*/
-    width: 100%;
-    box-sizing: border-box;
-    border: #4890ff 4px dashed;
-    display: flex;
+    width: 800px;
+    border: #002c71 2px solid;
+    display: block;
     flex-wrap: wrap;
-    align-items: center; /*vertically centered*/
+    align-items: top;
     overflow: auto;
+    text-align: center;
 }
 
 .gen-img {
-    margin: 10px;
+    margin: 2px;
 }
 
 .app-menu {
@@ -95,7 +123,7 @@ table {
     background: #e5e5e5;
     box-sizing: border-box;
     height: auto; /*undeclared flex so wraps*/
-    padding: 0px 10%;
+    padding: 8px 10%;
 }
 
 .button-set {
@@ -113,6 +141,15 @@ table {
     margin: 0px 8px;
 }
 
+.menu-text {
+    font-family: "Helvetica", sans-serif;
+    font-size: 16px;
+    line-height: 20px;
+    color: #222222;
+    display: flex;
+    margin: 0 8px;
+}
+
 .flow-area {
     background: #f4f4f4;
     box-sizing: border-box;
@@ -120,8 +157,21 @@ table {
 }
 
 .flow-section {
-    padding: 0px 10%;
+    padding: 40px 10%;
     box-sizing: border-box;
+    min-height: 80vh;
+}
+
+#description {
+    background: #99D1FF;
+}
+
+#instructions {
+   background: #AD99FF;
+}
+
+#example {
+   background: #99FFC4;
 }
 
 .flow-title {
@@ -130,16 +180,37 @@ table {
     line-height: 40px;
     color: #111111;
     text-decoration: underline;
+    margin: 32px 0px;
 }
 .flow-text {
     font-family: "Helvetica", sans-serif;
     font-size: 18px;
     line-height: 22px;
     color: #111111;
+    margin: 16px 0px;
 }
 
 .cr-footer {
-    background: #e5e5e5;
+    background: #222222;
     box-sizing: border-box;
     padding: 0px 10%;
+    height: 160px;
+    border-bottom: #111111 1px solid;
+}
+
+.footer-text {
+    font-family: "Helvetica", sans-serif;
+    font-size: 24px;
+    line-height: 28px;
+    color: #efefef;
+    padding: 8px 0px;
+}
+
+.hover-grow {
+    transform: scale(1,1);
+    transition: transform 0.2s ease 0.1s;
+}
+
+.hover-grow:hover {
+    transform: scale(1.15, 1.15);
 }
