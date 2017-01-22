@@ -1,1 +1,92 @@
+<html>
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
+        <script type=text/javascript>
+	  $(function() {
+	    $('#generate-button').bind('click', function() {
+	      $.getJSON('http://127.0.0.1:5000/generate', {
+	      }, function(data) {
+		$("#result").text(data.result);
+	      });
+	      return false;
+	    });
+	  });
+          $(function() {
+	    $('#upload-button').bind('click', function() {
+	      $.getJSON('http://127.0.0.1:5000/upload', {
+	      }, function(data) {
+		$("#result").text(data.result);
+	      });
+	      return false;
+	    });
+	  });
+	</script> <!-- will need to check local host will work-->
+    </head>
+    <body>
+        <header class="cr-header"> <!-- to be overlayed in a fixed position over app and flow-->
+            <p class="header-text">caterate.me</p>
+        </header>
+        
+        <section class="app-area"> <!-- to be the device height, a scrollable page-->
+            <div class="app-body">
+                <div class="image-area">
+                    <p><span id="result">?</span></p>
+                    <img src="{{ url_for('static',filename='sample-thumbnail.png') }}" alt="sample" height="224" width="224" class="gen-img"/>
+                    <img src="{{ url_for('static',filename='sample-thumbnail.png') }}" alt="sample" height="224" width="224" class="gen-img"/>
+		    <img src="{{ url_for('static',filename='sample-thumbnail.png') }}" alt="sample" height="224" width="224" class="gen-img"/>
+                    <img src="{{ url_for('static',filename='sample-thumbnail.png') }}" alt="sample" height="224" width="224" class="gen-img"/>
+                </div>
+            </div>
+            <div class="app-menu">
+                <div class="button-set"> <!-- to be horizontal flex so we can easily add new buttons within this div-->
+                    <button class="menu-button" id="generate-button">Generate</button>
+                    <button class="menu-button" id="upload-button">Upload</button>
+                    <button class="menu-button" id="scroll-button">Scroll down</button>
+                    <form method="post" enctype="multipart/form-data">
+                        <input type="file" name="file">
+                        <input type="submit" value="Upload">
+                    </form>
+                </div>
+            </div>
+        </section>
+        
+        <section class="flow-area">
+            <div class="flow-section" id="description">
+                <p class="flow-title">Description</p>
+                <p class="flow-text">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                </p>
+            </div>
+            <div class="flow-section" id="instructions">
+                <p class="flow-title">Instructions</p>
+                <p class="flow-text">
+                    Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?
+                </p>
+                <p class="flow-text">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                </p>
+            </div>
+            <div class="flow-section" id="example">
+                <p class="flow-title">Example</p>
+                <p class="flow-text">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                </p>
+            </div>
+        </section>
+        
+        <p id="result"></p>
+
+        
+        <footer class="cr-footer">
+            footer content goes here
+        </footer>
+    </body>
+    
+    <!--<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}">-->
+    <script src="{{ url_for('static',filename='scripts.js') }}" type="text/javascript"></script>
+</html>
