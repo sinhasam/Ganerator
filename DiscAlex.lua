@@ -233,8 +233,8 @@ for epoch = 1, opt.numEpoch do
 	print(genImg:nDimension())
 	print(genImg:size())
 	gGradParams, dGradParams, gParams, dParams = nil, nil, nil, nil
-	torch.save("TrainedModels/Gen", GenerativeModel:clearState())
-	torch.save("TrainedModels/Disc", DiscriminativeModel:clearState())
+	torch.save("TrainedModels2/Gen", GenerativeModel:clearState())
+	torch.save("TrainedModels2/Disc", DiscriminativeModel:clearState())
 --	local img = image.toDisplayTensor(genImg)
 	--print(#genImg[1])
 --	print(genImg)
@@ -242,6 +242,6 @@ for epoch = 1, opt.numEpoch do
 	gParams, gGradParams = GenerativeModel:getParameters()
 	dParams, dGradParams = DiscriminativeModel:getParameters()
 
-	image.save("TrainedModels/" ..epoch.. "genImg.jpeg", input[1])
+	image.save("TrainedModels2/" ..epoch.. "genImg.jpeg", input[1])
 end
 
