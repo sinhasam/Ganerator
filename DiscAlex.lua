@@ -10,7 +10,7 @@ require 'image'
 
 opt = {
 	batchSize = 1,
-	lr = 0.002,
+	lr = 0.02,
 	b1 = 0.5,
 	numEpoch = 50,
 	gpu = 1
