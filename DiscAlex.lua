@@ -16,7 +16,7 @@ opt = {
 	gpu = 1
 }
 
-
+cutorch.setHeapTracking(true)
 local spatialFullConvolution = nn.SpatialFullConvolution
 local spatialConv = cudnn.SpatialConvolution
 local spatialMaxPool = cudnn.SpatialMaxPooling
@@ -25,6 +25,7 @@ local spatialMaxPool = cudnn.SpatialMaxPooling
 local features  = nn.Sequential()
 local classifier = nn.Sequential()
 local batchNorm = nn.SpatialBatchNormalization
+torch.setdefaulttensortype('torch.FloatTensor')
 
 
 
@@ -62,6 +63,8 @@ features:add(cudnn.ReLU(true))
 --features:add(nn.ReLU(true)) -- HEREREREERE
 --features:add(batchNorm(256,nil,nil,false))
 
+print('Training!')
+print('Setting AlexNet')
 
 classifier:add(nn.View(256*6*6))
 classifier:add(nn.Dropout(0.5))
@@ -76,6 +79,7 @@ classifier:add(nn.Linear(4096, 1))
 classifier:add(nn.LogSoftMax())
 
 local DiscriminativeModel = nn.Sequential()
+print('Setting up the discriminative model')
 
 DiscriminativeModel:add(features):add(classifier)
 
@@ -121,7 +125,7 @@ optimStateD = {
 }
 
 local input = torch.Tensor(opt.batchSize, 3, 224, 224)
-local noise = torch.Tensor(opt.batchSize, 100, 1, 1)
+local noise = torch.rand(opt.batchSize, 100, 1, 1)
 local label = torch.Tensor(opt.batchSize)
 local errD, errG
 local epoch_tm = torch.Timer()
@@ -150,7 +154,7 @@ local dParams, dGradParams = DiscriminativeModel:getParameters()
 local gParams, gGradParams = GenerativeModel:getParameters()
 
 noiseNorm = noise:clone()
-noiseNorm:normal(0,1)
+-- noiseNorm:normal(0,1)
 
 imgCount = 1
 dataset = {}
@@ -183,7 +187,7 @@ local fDx = function(x)
 	DiscriminativeModel:backward(input, dError)
 
 	noise:normal(0,1)
-	local genImg = GenerativeModel:forward(noise)
+	genImg = GenerativeModel:forward(noise)
 	input:copy(genImg)
 	label:fill(0)
 	
@@ -220,18 +224,24 @@ for epoch = 1, opt.numEpoch do
 		optim.adam(fGx, gParams, optimStateG)
 		print("passedloop")
 		counter = counter + 1
+		print(counter)
 		if counter % 50 == 0 then
 			print("Image:", counter)
 		end
 	end
 	print("Epoch Time:", epoch_tm:time().real)
+	print(genImg:nDimension())
+	print(genImg:size())
 	gGradParams, dGradParams, gParams, dParams = nil, nil, nil, nil
-	torch.save("TrainedModels/" ..epoch.. "Gen", GenerativeModel:clearState())
-	torch.save("TrainedModels/" ..epoch.. "Disc", DiscriminativeModel:clearState())
-	torch.save("TrainedModels/" ..epoch.. "genImg",genOutput)
-	image.save("TrainedModels/images/" ..epoch.. "genImg.jpeg")
+	torch.save("TrainedModels/Gen", GenerativeModel:clearState())
+	torch.save("TrainedModels/Disc", DiscriminativeModel:clearState())
+--	local img = image.toDisplayTensor(genImg)
+	--print(#genImg[1])
+--	print(genImg)
+--	image.save("TrainedModels/" ..epoch.. "genImg.jpeg", genImg[1])
 	gParams, gGradParams = GenerativeModel:getParameters()
 	dParams, dGradParams = DiscriminativeModel:getParameters()
 
+	image.save("TrainedModels/" ..epoch.. "genImg.jpeg", input[1])
 end
 
