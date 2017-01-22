@@ -20,8 +20,8 @@ opt = {
 local spatialFullConvolution = nn.SpatialFullConvolution
 --local spatialConv = cudnn.SpatialConvolution
 --local spatialMaxPool = cudnn.SpatialMaxPooling
-local spatialConv = nn.SpatialConvolution
-local spatialMaxPool = nn.SpatialMaxPooling
+local spatialConv = nn.SpatialConvolution --HERERERERERE
+local spatialMaxPool = nn.SpatialMaxPooling --HERERERERERERE
 local features  = nn.Sequential()
 local classifier = nn.Sequential()
 local batchNorm = nn.SpatialBatchNormalization
@@ -41,23 +41,25 @@ end
 
 features:add(spatialConv(3,64,11,11,4,4,2,2))	--224 -> 55
 features:add(spatialMaxPool(3,3,2,2))
---features:add(cudnn.ReLU(true))
-features:add(nn.ReLU(true))
+-- features:add(cudnn.ReLU(true))
+features:add(nn.ReLU(true)) -- HERERERERERE
 
 
 features:add(spatialConv(64,192,5,5,1,1,2,2))	--27 -> 27
 features:add(spatialMaxPool(3,3,2,2))           --27 -> 13
-features:add(nn.ReLU(true))
-
+--features:add(cudnn.ReLU(true))
+features:add(nn.ReLU(true)) -- HERERERERERE
 features:add(spatialConv(192,384,3,3,1,1,1,1))  --13 -> 13
-features:add(nn.ReLU(true))
+--features:add(cudnn.ReLU(true))
+features:add(nn.ReLU(true)) --HERERERERERERE
 
 features:add(spatialConv(384,256,3,3,1,1,1,1))  --13 -> 13
-features:add(nn.ReLU(true))
-
+--features:add(cudnn.ReLU(true))
+features:add(nn.ReLU(true)) --HERERERERER
 features:add(spatialConv(256,256,3,3,1,1,1,1))  --13 -> 13
 features:add(spatialMaxPool(3,3,2,2))           --13 -> 6
-features:add(nn.ReLU(true))
+--features:add(cudnn.ReLU(true))
+features:add(nn.ReLU(true)) -- HEREREREERE
 -- features:add(batchNorm(256,nil,nil,false))
 
 
