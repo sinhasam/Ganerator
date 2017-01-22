@@ -53,8 +53,9 @@ GenerativeModel:add(spatialFullConvolution(64, 3, 4, 4, 2, 2, 1, 1))
 
 GenerativeModel:add(nn.Tanh())
 
-weights = torch.load("Gen")
---GenerativeModel:apply(weights)
+gen = torch.load("Gen")
+weights, grads = gen:getParameters()
+GenerativeModel:apply(weights)
 local noise = torch.rand(opt.batchSize, 100, 1, 1)
 
 genImg = weights:forward(noise)
