@@ -5,7 +5,7 @@ vim/
 *.src.rock
 *.zip
 *.tar.gz
-
+.DS_Store
 # Object files
 *.o
 *.os
