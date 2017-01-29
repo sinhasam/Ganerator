@@ -1,5 +1,5 @@
 require 'cudnn'
---require 'cunn'
+require 'cunn'
 require 'nn'
 require 'paths'
 require 'optim'
@@ -10,13 +10,13 @@ require 'image'
 
 opt = {
 	batchSize = 1,
-	lr = 0.002,
+	lr = 0.02,
 	b1 = 0.5,
-	numEpoch = 50,
+	numEpoch = 10000,
 	gpu = 1
 }
 
-
+cutorch.setHeapTracking(true)
 local spatialFullConvolution = nn.SpatialFullConvolution
 local spatialConv = cudnn.SpatialConvolution
 local spatialMaxPool = cudnn.SpatialMaxPooling
@@ -25,6 +25,7 @@ local spatialMaxPool = cudnn.SpatialMaxPooling
 local features  = nn.Sequential()
 local classifier = nn.Sequential()
 local batchNorm = nn.SpatialBatchNormalization
+torch.setdefaulttensortype('torch.FloatTensor')
 
 
 
@@ -60,8 +61,10 @@ features:add(spatialConv(256,256,3,3,1,1,1,1))  --13 -> 13
 features:add(spatialMaxPool(3,3,2,2))           --13 -> 6
 features:add(cudnn.ReLU(true))
 --features:add(nn.ReLU(true)) -- HEREREREERE
-features:add(batchNorm(256,nil,nil,false))
+--features:add(batchNorm(256,nil,nil,false))
 
+print('Training!')
+print('Setting AlexNet')
 
 classifier:add(nn.View(256*6*6))
 classifier:add(nn.Dropout(0.5))
@@ -76,6 +79,7 @@ classifier:add(nn.Linear(4096, 1))
 classifier:add(nn.LogSoftMax())
 
 local DiscriminativeModel = nn.Sequential()
+print('Setting up the discriminative model')
 
 DiscriminativeModel:add(features):add(classifier)
 
@@ -104,7 +108,7 @@ GenerativeModel:add(batchNorm(64)):add(nn.ReLU(true))
 -- state size: (64) x 112 x 112
 GenerativeModel:add(spatialFullConvolution(64, 3, 4, 4, 2, 2, 1, 1))
 -- state size: 3 x 224 x 224
-print("pass1")
+
 
 GenerativeModel:add(nn.Tanh())
 
@@ -121,7 +125,7 @@ optimStateD = {
 }
 
 local input = torch.Tensor(opt.batchSize, 3, 224, 224)
-local noise = torch.Tensor(opt.batchSize, 100, 1, 1)
+local noise = torch.rand(opt.batchSize, 100, 1, 1)
 local label = torch.Tensor(opt.batchSize)
 local errD, errG
 local epoch_tm = torch.Timer()
@@ -150,7 +154,7 @@ local dParams, dGradParams = DiscriminativeModel:getParameters()
 local gParams, gGradParams = GenerativeModel:getParameters()
 
 noiseNorm = noise:clone()
-noiseNorm:normal(0,1)
+-- noiseNorm:normal(0,1)
 
 imgCount = 1
 dataset = {}
@@ -175,7 +179,7 @@ local fDx = function(x)
 	input:copy(img)
 	label:fill(1)
 
-	print(input:size())
+
 	local output = DiscriminativeModel:forward(input)
 	local imgError = criterion:forward(output, label)
 	local dError = criterion:backward(output, label)
@@ -183,7 +187,7 @@ local fDx = function(x)
 	DiscriminativeModel:backward(input, dError)
 
 	noise:normal(0,1)
-	local genImg = GenerativeModel:forward(noise)
+	genImg = GenerativeModel:forward(noise)
 	input:copy(genImg)
 	label:fill(0)
 	
@@ -220,18 +224,24 @@ for epoch = 1, opt.numEpoch do
 		optim.adam(fGx, gParams, optimStateG)
 		print("passedloop")
 		counter = counter + 1
-		if counter % 250 == 0 then
+		print(counter)
+		if counter % 50 == 0 then
 			print("Image:", counter)
 		end
 	end
 	print("Epoch Time:", epoch_tm:time().real)
+	print(genImg:nDimension())
+	print(genImg:size())
 	gGradParams, dGradParams, gParams, dParams = nil, nil, nil, nil
-	torch.save("TrainedModels/" ..epoch.. "Gen", GenerativeModel:clearState())
-	torch.save("TrainedModels/" ..epoch.. "Disc", DiscriminativeModel:clearState())
-	torch.save("TrainedModels/" ..epoch.. "genImg",genOutput)
-	image.save("TrainedModels/images/" ..epoch.. "genImg.jpeg")
+	torch.save("TrainedModels2/Gen", GenerativeModel:clearState())
+	torch.save("TrainedModels2/Disc", DiscriminativeModel:clearState())
+--	local img = image.toDisplayTensor(genImg)
+	--print(#genImg[1])
+--	print(genImg)
+--	image.save("TrainedModels/" ..epoch.. "genImg.jpeg", genImg[1])
 	gParams, gGradParams = GenerativeModel:getParameters()
 	dParams, dGradParams = DiscriminativeModel:getParameters()
 
+	image.save("TrainedModels2/" ..epoch.. "genImg.jpeg", input[1])
 end
 
