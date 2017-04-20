@@ -1,5 +1,6 @@
 # Compiled Lua sources
 luac.out
+.DS_Store
 vim/
 # luarocks build files
 *.src.rock

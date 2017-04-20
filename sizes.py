@@ -46,5 +46,3 @@ for count, file in enumerate(os.listdir('/Users/sinhasam/Documents/lua/Ganerator
 	print(count)
 	
 	cv2.imwrite(filename, finalImage)
-	
-	

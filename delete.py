@@ -15,4 +15,4 @@ for counter, file in enumerate(os.listdir('/Users/sinhasam/Documents/lua/Ganerat
 	if img.shape[0] != 224 or img.shape[1] != 224:
 		count += 1
 		# os.remove(file)
-print(count)
+print("deleted " + count + " number of pictures")

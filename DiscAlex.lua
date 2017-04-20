@@ -191,9 +191,9 @@ local fDx = function(x)
 	input:copy(genImg)
 	label:fill(0)
 	
-        local output = DiscriminativeModel:forward(input)
-        local genImgError = criterion:forward(output, label)
-        local dGenError = criterion:backward(output, label)
+    local output = DiscriminativeModel:forward(input)
+    local genImgError = criterion:forward(output, label)
+    local dGenError = criterion:backward(output, label)
 	DiscriminativeModel:backward(input, dGenError)
 
 	dError = imgError + genImgError
